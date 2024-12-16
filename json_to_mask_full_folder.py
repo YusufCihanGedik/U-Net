@@ -42,9 +42,9 @@ def process_shapes(data, labels, image_width=1318, image_height=1318):
         color_id_matrix = cv2.add(color_id_matrix, erode_color_id_matrix)
         
         mask_for_class_id = np.zeros((image_height, image_width), dtype=np.uint8)
-        cv2.fillPoly(mask_for_class_id, [converted_points], labels[label][0] * 255)
+        cv2.fillPoly(mask_for_class_id, [converted_points], labels[label][0] * 1)
         # print(labels[label][0])
-        number_of_ones_class = np.count_nonzero(mask_for_class_id == 255)
+        number_of_ones_class = np.count_nonzero(mask_for_class_id == 1)
         if number_of_ones_class<kucuk:
             kucuk=number_of_ones_class
             
@@ -54,8 +54,8 @@ def process_shapes(data, labels, image_width=1318, image_height=1318):
             erode_mask_for_class_id = mask_for_class_id
 
         class_id_matrix = cv2.add(class_id_matrix, erode_mask_for_class_id)
-        if len(np.unique(class_id_matrix)) > 2:
-            print("asdasd")
+        # if len(np.unique(class_id_matrix)) > 2:
+        #     print("asdasd")
         centroid = np.mean(converted_points, axis=0).astype(int)
         text = f" {number_of_ones_class}"
         cv2.putText(color_id_matrix, text, (centroid[0][0]-20, centroid[0][1]+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
@@ -87,38 +87,34 @@ def main_loop(image_folder, label_folder, labels):
     current_image_index = 0
     total_images = len(images)
 
-    while True:
+    output_mask_folder = r"C:\Users\Gedik\Desktop\Unet_mask\mask"
+    os.makedirs(output_mask_folder, exist_ok=True)  # Çıkış klasörünü oluştur
+
+    while current_image_index < total_images:
         image_path = os.path.join(image_folder, images[current_image_index])
         label_path = os.path.join(label_folder, images[current_image_index].replace('.png', '.json'))
-        print(image_path)
+        print(f"Processing image: {image_path}")
+        
         image = cv2.imread(image_path)
         if image is None:
             print(f"Error loading image {image_path}")
-            return
+            current_image_index += 1
+            continue
 
-        mask = None
         if os.path.exists(label_path):
             label_data = read_json_labels(label_path)
-            black_mask, mask = process_shapes(label_data, labels)
-
-            # Resize mask to match the image size if necessary
-            mask = cv2.resize(mask, (image.shape[1], image.shape[0]))
-
-        if mask is not None:
-            display_image_with_mask(image, mask, black_mask)
+            black_mask, _ = process_shapes(label_data, labels)  # Sadece black_mask'e odaklanıyoruz
+            
+            # Siyah maske kaydetme
+            output_mask_path = os.path.join(output_mask_folder, f"{images[current_image_index].replace('.png', '_black_mask.png')}")
+            cv2.imwrite(output_mask_path, black_mask)
+            print(f"Saved black mask to: {output_mask_path}")
         else:
-            display_image(image)
+            print(f"No JSON label found for: {images[current_image_index]}")
 
-        key = cv2.waitKey(0) & 0xFF
+        current_image_index += 1
 
-        if key == ord('d') and current_image_index < total_images - 1:
-            current_image_index += 1
-        elif key == ord('a') and current_image_index > 0:
-            current_image_index -= 1
-        elif key == ord('q'):
-            break
 
-    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     image_folder = r"C:\Users\Gedik\Desktop\Unet_mask\images"

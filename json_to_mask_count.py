@@ -11,7 +11,7 @@ def read_json_labels(label_path):
 #  "imageHeight": 1566,
 #   "imageWidth": 1638,
 
-def process_shapes(data, labels, image_width=1638, image_height=1566):
+def process_shapes(data, labels, image_width=1318, image_height=1318):
     class_id_matrix = np.zeros((image_height, image_width), dtype=np.uint8)
     color_id_matrix = np.zeros((image_height, image_width, 3), dtype=np.uint8)
     
@@ -32,7 +32,7 @@ def process_shapes(data, labels, image_width=1638, image_height=1566):
         if number_of_ones1 < 300:
             erode_color_id_matrix = cv2.erode(temp_color_id_matrix, erode_kernel, iterations=0)
         else:
-            erode_color_id_matrix = cv2.erode(temp_color_id_matrix, erode_kernel, iterations=20)
+            erode_color_id_matrix = cv2.erode(temp_color_id_matrix, erode_kernel, iterations=5)
 
 
 
@@ -46,7 +46,7 @@ def process_shapes(data, labels, image_width=1638, image_height=1566):
         if number_of_ones < 300 :
             erode_mask_for_class_id = cv2.erode(mask_for_class_id, erode_kernel, iterations=0)
         else:
-            erode_mask_for_class_id = cv2.erode(mask_for_class_id, erode_kernel, iterations=20)
+            erode_mask_for_class_id = cv2.erode(mask_for_class_id, erode_kernel, iterations=4)
 
         # Erozyon işleminden sonra oluşan mask'i class_id_matrix'e ekle
         class_id_matrix = cv2.add(class_id_matrix, erode_mask_for_class_id)
@@ -65,7 +65,7 @@ def process_shapes(data, labels, image_width=1638, image_height=1566):
     return class_id_matrix, color_id_matrix
 
 
-    return class_id_matrix, color_id_matrix, 
+ 
 
 
 def display_image_with_mask(image, mask,black_mask):
@@ -131,6 +131,6 @@ if __name__ == "__main__":
     # image_folder = r"C:\Users\Gedik\Desktop\Aisoftlabeling\admin_anylabeling\drive\Dowload\SAMET\images"
     # label_folder = r"C:\Users\Gedik\Desktop\Aisoftlabeling\admin_anylabeling\drive\Dowload\SAMET\mask"
     image_folder = r"C:\Users\Gedik\Desktop\Unet_mask\images"
-    label_folder = r"C:\Users\Gedik\Desktop\Unet_mask\mask"
+    label_folder = r"C:\Users\Gedik\Desktop\Unet_mask\mask_label"
     labels = {"1": [1, (255, 255, 255)], "circle": [2, (151, 255, 255)], "3": [3, (0, 255, 127)]}
     main_loop(image_folder, label_folder, labels)
